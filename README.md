@@ -10,9 +10,10 @@ This repository contains the official code of our ICLR 2026 paper:
 
 📄 **OpenReview**: https://openreview.net/forum?id=moBqB1CUym
 
+## Core Algorithm
+
 > ⚠️ Only the core algorithm (`core.py`) is released at the moment. Environment setup and full training scripts will be updated soon.
 
-## Core Algorithm
 `core.py` provides `EquiSparseDeltaSTR`, a wrapper that replaces `e3nn`'s `Linear` and `FullyConnectedTensorProduct` layers with their sparse-delta counterparts. The original pretrained weights are frozen, and a learnable delta weight is trained with a soft-threshold operator to induce sparsity.
 
 The following snippet illustrates the conceptual usage of `EquiSparseDeltaSTR`. It is not a runnable script — see the upcoming training code for the full pipeline.
