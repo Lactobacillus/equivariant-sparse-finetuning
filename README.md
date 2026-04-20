@@ -10,6 +10,49 @@ This repository contains the official code of our ICLR 2026 paper:
 
 📄 **OpenReview**: https://openreview.net/forum?id=moBqB1CUym
 
+> ⚠️ Only the core algorithm (`core.py`) is released at the moment. Environment setup and full training scripts will be updated soon.
+
+## Core Algorithm
+`core.py` provides `EquiSparseDeltaSTR`, a wrapper that replaces `e3nn`'s `Linear` and `FullyConnectedTensorProduct` layers with their sparse-delta counterparts. The original pretrained weights are frozen, and a learnable delta weight is trained with a soft-threshold operator to induce sparsity.
+
+The following snippet illustrates the conceptual usage of `EquiSparseDeltaSTR`. It is not a runnable script — see the upcoming training code for the full pipeline.
+
+```python
+from core import EquiSparseDeltaSTR
+
+model = EquiSparseDeltaSTR(e3nn_model, init_threshold = 1e-4, per_instruction = False)
+ 
+# separate parameter groups: delta weights vs. threshold scores
+delta_params = list()
+score_params = list()
+
+for name, param in model.named_parameters():
+
+    if not param.requires_grad:
+
+        continue
+
+    (score_params if 'score' in name else delta_params).append(param)
+
+# sparsity is induced by weight decay on scores
+optimizer = torch.optim.AdamW([
+    {'params': delta_params, 'lr': 1e-3, 'weight_decay': 0.0},
+    {'params': score_params, 'lr': 1e-3, 'weight_decay': 1e-4}])
+ 
+# training loop
+for batch in loader:
+
+    loss = compute_loss(model(batch), batch)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+ 
+# for deployment: commit pruned delta into the original weights
+model.prune()
+model.merge()
+```
+
 ## Environment
 ```shell
 Coming soon.
